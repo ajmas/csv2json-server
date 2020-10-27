@@ -1,0 +1,33 @@
+{
+    "compilerOptions": {
+      "lib": [
+        "es6",
+        "es2015",
+        "dom"
+      ],
+      "module": "commonjs",
+      "experimentalDecorators": true,
+      "moduleResolution": "node",
+      "sourceMap": true,
+      "target": "es6",
+      "noImplicitAny": false,
+      "suppressImplicitAnyIndexErrors": true,
+      "typeRoots": [
+        "node_modules/@types",
+        "src/types/*"
+      ],
+      "rootDir": "src",
+      "outDir": "dist",
+      "esModuleInterop": true,
+      "resolveJsonModule": true
+    },
+    "paths": {
+      "*": [
+        "node_modules/*",
+        "src/types/*"
+      ]
+    },
+    "include": [
+      "src/"
+    ]
+  }
