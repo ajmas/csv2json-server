@@ -5,6 +5,7 @@ import URL from 'url';
 import path from 'path';
 import fs from 'fs';
 import { promisify } from 'util';
+import csv from 'csvtojson';
 
 const app = express();
 const port = 3000;
@@ -12,12 +13,18 @@ const port = 3000;
 const fsReadFile = promisify(fs.readFile);
 
 const config = {
-  source: "./test-data.csv",
-  mapping: [{
-    fieldName: '',
-    jsonPath: []
-  }]
-};
+  source: __dirname + "/test-data.csv",
+  mapping: [
+    {
+      fieldName: 'day',
+      jsonPath: 'day'
+    },
+    {
+      fieldName: 'time',
+      jsonPath: 'day.time'
+    }
+  ]
+}
 
 async function loadSpreadsheetFromUrl ( spreadsheetUrl: any ) {
   const response = await axios.get(config.source);
@@ -31,23 +38,39 @@ async function loadSpreadsheetFromFile ( spreadsheetPath: string ) {
   return fsReadFile(spreadsheetPath, 'UTF8');
 }
 
-async function loadSpreadsheet () {
-  let data;
-  if (config.source) {
-    const sourceUrl = URL.parse(config.source);
-    if (!sourceUrl.protocol) {
-      const filePath = config.source;;
-      data = await loadSpreadsheetFromFile(filePath);
-    } else {
-      data = await loadSpreadsheetFromUrl(sourceUrl);
-    }
-
-    console.log(data);
-    // TODO deal with parsing the spreadsheet;
-    return {};
+async function loadFromSource() {
+  const sourceUrl = URL.parse(config.source);
+  if (!sourceUrl.protocol) {
+    const filePath = config.source;;
+    return await loadSpreadsheetFromFile(filePath);
   } else {
-    return undefined;
+    return await loadSpreadsheetFromUrl(sourceUrl);
   }
+}
+
+function parseSpreadsheet(data) {
+  const map = data.reduce((map, timeslot) => {
+    const { Day, Time, ...rest } = timeslot;
+    if (!Day || !Time) return map;
+    if (!map[Day]) {
+      map[Day] = {
+        [Time]: rest
+      };
+    } else {
+      map[Day][Time] = rest
+    }
+    return map;
+  }, {})
+
+  return map
+}
+
+async function loadSpreadsheet () {
+  const data = await loadFromSource();
+  const json = await csv({ trim: true }).fromString(data);
+
+  const parsedData = parseSpreadsheet(json);
+  return parsedData;
 }
 
 app.get('/', async (req: Request, res: Response, next: NextFunction) => {
