@@ -1,0 +1,16 @@
+{
+    "fields": [
+        {
+            "fieldName": "day",
+            "jsonPath": "day"
+        }, 
+        {
+            "fieldName": "time",
+            "jsonPath": "time"
+        },
+        {
+            "fieldName": "Track 1 language",
+            "jsonPath": "time"
+        }
+    ]
+}
