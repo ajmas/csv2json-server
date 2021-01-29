@@ -6,7 +6,7 @@ file, that is either located locally or on an HTTP server.
 ## Installing
 
 This project is written in [Node.js](https://nodejs.org/) and should run
-on any platform that can run nodejs. 
+on any platform that can run nodejs.
 
 Assuming you have Node.js installed, you then need to install the packages this project depends on:
 
@@ -58,7 +58,17 @@ format:
 }
 ```
 
-And then let server know to use this
+The properties are as follows:
+
+  - **columnIndex**: the index of the column to take data from in the CSV
+  - **columnName**: the name of the column to take the data from in the CSV
+  - **jsonPath**: the json property name to use. Note, child paths
+    are not supported.
+
+Note, that either 'columnIndex' or 'columnName' should be used. If both
+are specified for a given field, then 'columnIndex' will take precedence.
+
+Next, let server know to use this
 
 ```sh
 export CSV2JSON_MAPPING=./mappings.json
