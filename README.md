@@ -77,3 +77,13 @@ export CSV2JSON_PARSE=1
 ```
 
 Then launch the server as in the basic mode.
+
+
+## Contributors
+
+  - Sam Wong
+  - Andre-John Mas
+
+## License
+
+This project uses the [MIT license](https://opensource.org/licenses/MIT).
