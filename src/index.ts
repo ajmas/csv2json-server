@@ -1,26 +1,18 @@
 import express, { Request, Response, NextFunction } from 'express';
 import axios from 'axios';
-import dotenv from 'dotenv';
 import URL from 'url';
 import path from 'path';
 import fs from 'fs';
 import { promisify } from 'util';
+import csv from 'csvtojson';
+import config from './config';
 
 const app = express();
 const port = 3000;
-
 const fsReadFile = promisify(fs.readFile);
 
-const config = {
-  source: "./test-data.csv",
-  mapping: [{
-    fieldName: '',
-    jsonPath: []
-  }]
-};
-
-async function loadSpreadsheetFromUrl ( spreadsheetUrl: any ) {
-  const response = await axios.get(config.source);
+async function loadSpreadsheetFromUrl ( spreadsheetUrl: string ) {
+  const response = await axios.get(spreadsheetUrl);
   if (response && response.data) {
     return response.data;
   }
@@ -31,23 +23,41 @@ async function loadSpreadsheetFromFile ( spreadsheetPath: string ) {
   return fsReadFile(spreadsheetPath, 'UTF8');
 }
 
-async function loadSpreadsheet () {
-  let data;
-  if (config.source) {
-    const sourceUrl = URL.parse(config.source);
-    if (!sourceUrl.protocol) {
-      const filePath = config.source;;
-      data = await loadSpreadsheetFromFile(filePath);
-    } else {
-      data = await loadSpreadsheetFromUrl(sourceUrl);
-    }
-
-    console.log(data);
-    // TODO deal with parsing the spreadsheet;
-    return {};
+async function loadFromSource() {
+  const { source } = config;
+  const sourceUrl = URL.parse(source);
+  if (!sourceUrl.protocol) {
+    return await loadSpreadsheetFromFile(source);
   } else {
-    return undefined;
+    return await loadSpreadsheetFromUrl(source);
   }
+}
+
+function parseSpreadsheet(data) {
+  const map = data.reduce((map, timeslot) => {
+    const { Day, Time, ...rest } = timeslot;
+    if (!Day || !Time) return map;
+    if (!map[Day]) {
+      map[Day] = {
+        [Time]: rest
+      };
+    } else {
+      map[Day][Time] = rest
+    }
+    return map;
+  }, {})
+
+  return map
+}
+
+async function loadSpreadsheet () {
+  const data = await loadFromSource();
+  const json = await csv({ trim: true }).fromString(data);
+
+  if (!config.parse) return json;
+
+  const parsedData = parseSpreadsheet(json);
+  return parsedData;
 }
 
 app.get('/', async (req: Request, res: Response, next: NextFunction) => {
@@ -60,7 +70,7 @@ app.get('/', async (req: Request, res: Response, next: NextFunction) => {
 });
 
 app.listen(port, () => {
-  console.log(`Example app listening at http://localhost:${port}`)
+  console.log(`Example app listening at ${config.apiUrl}`)
 });
 
 
