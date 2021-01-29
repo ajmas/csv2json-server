@@ -54,7 +54,9 @@ async function loadSpreadsheet () {
   const data = await loadFromSource();
   const json = await csv({ trim: true }).fromString(data);
 
-  if (!config.parse) return json;
+  if (!config.parse) {
+    return json;
+  }
 
   const parsedData = parseSpreadsheet(json);
   return parsedData;
@@ -70,7 +72,7 @@ app.get('/', async (req: Request, res: Response, next: NextFunction) => {
 });
 
 app.listen(port, () => {
-  console.log(`Example app listening at ${config.apiUrl}`)
+  console.log(`CVS2JSON Server listening on port ${config.port}`)
 });
 
 
